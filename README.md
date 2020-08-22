@@ -1,24 +1,24 @@
-This repo consists of all the code snippets for the Learning section of the website.
+This repository consists of all the code snippets for the `Learn` page of The Programming Foundation.
 
-# Structure of the Repo
-This repo follows a hierarchical directory structure which resembles the hierarchy present in the learning section of the website.
+# Structure of the repository
+This repo follows a hierarchical directory structure that resembles the hierarchy present in the website's `Learn` page.
 
-At the top of the hierarchy, we have `Domains`. Under each `Domain`, we have `Courses`. Under each `Course`, we have `Lessons`. Under each `Lesson`, we have `Topics`.
+A `Domain` is the highest element of the hierarchy. Under each `Domain`, there are `Sections`, under each `Section`, there are `Lessons`, and, under each `Lesson`, there are `Topics`.
 
 ```
 .
 ├── ...
 ├── Domain1             
-│   ├── Course1
+│   ├── Section1
 │   │   ├── Lesson1
 │   │   │   ├── Topic1
 │   │   │   ├── Topic2
 │   │   │   └── ...
 │   │   ├── Lesson2
 │   │   └── ...
-│   ├── Course2
+│   ├── Section2
 │   │   └── ...
-│   ├── Course3
+│   ├── Section3
 │   │   └── ...
 │   └── ...
 ├── Domain2            
@@ -26,22 +26,21 @@ At the top of the hierarchy, we have `Domains`. Under each `Domain`, we have `Co
 └── ...
 ```
 
-## Domains
-Domains are a means to categorize our learning material. Similar Courses are categorized together undre one `Domain`.
-Examples  of Domains are `Operating Systems` as it deals with a collection of tools and concepts. `Programming Languages` can be considered as another  domain as it deals with a collection of concepts and tools that are different from those of the `Operating Systems`
+## Domain
+Domains are a means to categorize our learning page. Relevant Sections are classified together under them.
+`Operating systems` are under a `Domain` as they deal with a collection of tools and instructions, whereas `Programming languages` are considered another domain as they deal with a selection of ideas and tools.
 
-## Courses
-Courses are materials that help students learn about a particular tool, concept or procedure. Each course is organized into multiple Lessons each of which covers a set of related concepts.
+## Section
+Sections are a set of Lessons that help students learn about a particular tool, concept, or procedure. Multiple lessons are inside each Section, which covers a set of related concepts.
 
-An Example of a course under the Domain `Operating System` is `Unix` as it is a type of Operating System.
+An example of a Section under the Domain `Operating systems` is `Unix` as it is a family of operating systems.
 
-Another example of a course in `Operating System` would be `Vim` as it is a tool which can be learnt independantly of the `Unix` Course.
+Another example of a section under `Operating systems` is `Vim`. It is a text-editor tool that comes with major Unix or Unix-like operating systems and can be learned separately of the `Unix` section.
 
 
-## Lessons
-Lessons are a collection of Topics that can be learnt together. Lessons in a course are allowed to have relationships or dependencies with other lessons in a course and can be designed in a sequential order.
+## Lesson
+Lessons are a collection of Topics to learn together. Lessons in a section are allowed to have relationships or dependencies with other lessons in a section in sequential order.
 
-An Example of a lesson under the Course `Unix` is `Unix Shell` as it is an tool offered by Unix which in turn has a lot of tools inside of it.
-Another example of a lesson in the Course `Unix` is `Unix File Structure` as it is a concept in Unix. The Lessons `Unix Shell` and `Unix File Structure` can have a depenency between the two as we can expect students to already know `Unix File Structure` Before learning `Unix Shell`.
+An example of a lesson under the section `Unix` is the `Unix shell` as it is a CLI with a wide range of tools to operate a Unix operating system.
 
-Another example of a course in `Operating System` would be `Unix File Structure` as the concepts of `Unix File Structure` can be learnt independently of the `Unix Shell`.
+Another example of a lesson under the section `Unix` is the `Unix file structure` as it is a concept in Unix and Unix-like operating systems. The Lessons, `Unix Shell` and, `Unix file structure` can have dependency between the two as we expect students to already know the `Unix file structure` before moving to the `Unix shell` lesson.
