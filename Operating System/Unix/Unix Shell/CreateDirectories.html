@@ -1,0 +1,83 @@
+<div id="mkdir-terminal"></div>
+<script>
+  // mkdir
+  $(function () {
+    var onFocusClearMkDir = true;
+    var mkDirFolders = [];
+    var mkDirLsFunc = function (f) {
+      if (!f && mkDirFolders.length) {
+        this.echo(mkDirFolders.join("  "));
+      } else if (mkDirFolders.length) {
+        if (mkDirFolders.indexOf(f.substring(0, f.length - 1)) === -1) {
+          this.echo(
+            '[[;red;]ls: cannot access "' +
+              f.substring(0, f.length - 1) +
+              '": No such file or directory'
+          );
+        }
+      }
+    };
+    var mkdirTerminal = $("#mkdir-terminal").terminal(
+      {
+        ls: mkDirLsFunc,
+        l: mkDirLsFunc,
+        mkdir: function () {
+          if (!arguments.length) {
+            this.echo("[[;red;]mkdir: missing operand");
+          } else {
+            for (var i = 0; i < arguments.length; i++) {
+              if (mkDirFolders.indexOf(arguments[i]) !== -1) {
+                this.echo(
+                  "[[;red;]mkdir: cannot create directory '" +
+                    arguments[i] +
+                    "': File exists"
+                );
+              } else if (mkDirFolders.length < 2) {
+                mkDirFolders.push(arguments[i]);
+              }
+            }
+          }
+        },
+      },
+      {
+        prompt: "user@theprogrammingfoundation:~$ ",
+        enabled: false,
+        greetings: false,
+        checkArity: false,
+        onFocus: function () {
+          onFocusClearMkDir = true;
+          mkDirFolders = [];
+          this.exec("clear");
+          this.resume();
+        },
+        onBlur: function () {
+          onFocusClearMkDir = false;
+        },
+        onAfterCommand: function () {
+          if (onFocusClearMkDir) {
+            onFocusClearMkDir = false;
+            return;
+          }
+          scrollToTerminal($("#mkdir-terminal"));
+        },
+        keydown: function (e) {
+          var code;
+          if (e.keyCode) {
+            code = e.keyCode;
+          } else if (e.which) {
+            code = e.which;
+          }
+          if (code == 13) {
+            if (this.get_command().trim() === "") {
+              return false;
+            }
+          }
+          if (code == 32) {
+            e.preventDefault();
+            this.insert(" ");
+          }
+        },
+      }
+    );
+  });
+</script>

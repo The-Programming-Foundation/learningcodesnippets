@@ -1,0 +1,78 @@
+<div id="clear-terminal"></div>
+<script>
+  // clear
+  var demoTextWasAdded = false;
+  $(function () {
+    var onFocusClearClear = false;
+    var clearTerminal = $("#clear-terminal").terminal(
+      {},
+      {
+        prompt: "user@theprogrammingfoundation:~$ ",
+        enabled: false,
+        greetings: false,
+        onBlur: function () {
+          if (sharedContext.completedTwo) {
+            sharedContext.completedTwo = false;
+            demoTextWasAdded = false;
+          }
+        },
+        keydown: function (e) {
+          var code;
+          if (e.keyCode) {
+            code = e.keyCode;
+          } else if (e.which) {
+            code = e.which;
+          }
+          if (code == 13) {
+            if (this.get_command().trim() === "") {
+              return false;
+            }
+          }
+          if (code == 32) {
+            e.preventDefault();
+            if (!sharedContext.completedOne) {
+              this.insert(" ");
+            }
+          }
+          if (
+            (sharedContext.completedOne && this[0].id === "echo-terminal") ||
+            (sharedContext.completedTwo && this[0].id === "clear-terminal")
+          ) {
+            return false;
+          }
+          if (code == 13) {
+            if (
+              this.get_command().trim() === "clear" &&
+              this[0].id === "clear-terminal"
+            ) {
+              sharedContext.completedTwo = true;
+              setTimeout(function () {
+                sharedContext.completedTwo = false;
+              }, 15000);
+            }
+          }
+        },
+        onAfterCommand: function () {
+          if (onFocusClearClear) {
+            onFocusClearClear = false;
+            return;
+          }
+          scrollToTerminal($("#clear-terminal"));
+        },
+        onBlur: function () {
+          onFocusClearClear = false;
+        },
+      }
+    );
+    clearTerminal.on("click", function () {
+      onFocusClearClear = true;
+      if (sharedContext.exportClearView === null && !demoTextWasAdded) {
+        clearTerminal.echo("user@theprogrammingfoundation:~$ echo Hello Earth");
+        clearTerminal.echo("Hello Earth");
+        demoTextWasAdded = true;
+      } else if (sharedContext.exportClearView !== null) {
+        clearTerminal.import_view(sharedContext.exportClearView);
+      }
+    });
+  });
+</script>

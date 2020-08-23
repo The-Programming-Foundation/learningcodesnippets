@@ -1,0 +1,217 @@
+<div id="rm-terminal"></div>
+<script>
+  // rm
+  $(function () {
+    var onFocusClearRm = true;
+    var rmFolders = [
+      "Desktop",
+      "Documents",
+      "Downloads",
+      "Pictures",
+      "Music",
+      "Public",
+      "Videos",
+    ];
+    var txtFile = "file.txt";
+    var steveJobsPic = "SJ_1955.jpg";
+    var billGatesPic = "BG_1955.jpg";
+    var rmCwd = "";
+    var rmLsFunc = function (f) {
+      if (!rmCwd) {
+        if (!f) {
+          var joinFile = txtFile ? "  " + txtFile : "";
+          this.echo(rmFolders.join("  ") + joinFile);
+        } else if (
+          rmFolders.indexOf(f.substring(0, f.length - 1)) !== -1 ||
+          rmFolders.indexOf(f) !== -1
+        ) {
+          if (f.split("/")[0] === "Pictures") {
+            var steveJobsSpace = steveJobsPic ? steveJobsPic + "  " : "";
+            if (steveJobsSpace && billGatesPic) {
+              this.echo(steveJobsSpace + billGatesPic);
+            }
+          }
+        } else if (rmFolders.indexOf(f.substring(0, f.length - 1)) === -1) {
+          this.echo(
+            '[[;red;]ls: cannot access "' +
+              f.split("/")[0] +
+              '": No such file or directory'
+          );
+        }
+      } else {
+        if (!f && rmCwd === "Pictures") {
+          var steveJobsSpace = steveJobsPic ? steveJobsPic + "  " : "";
+          if (steveJobsSpace && billGatesPic) {
+            this.echo(steveJobsSpace + billGatesPic);
+          }
+        }
+      }
+    };
+    var rmTerminal = $("#rm-terminal").terminal(
+      {
+        ls: rmLsFunc,
+        l: rmLsFunc,
+        cd: function (path) {
+          if (!path || path === ".." || path === "../") {
+            if (rmCwd) {
+              rmCwd = "";
+              this.set_prompt("user@theprogrammingfoundation:~$ ");
+            }
+          } else if (
+            folders.indexOf(path) !== -1 ||
+            folders.indexOf(path.substring(0, path.length - 1)) !== -1
+          ) {
+            rmCwd = path.split("/")[0];
+            this.set_prompt(
+              "user@theprogrammingfoundation:~/" + path.split("/")[0] + "$ "
+            );
+          } else {
+            this.echo("[[;red;]cd: " + path + ": No such file or directory");
+          }
+        },
+        open: function (fileName) {
+          if (rmCwd === "Pictures") {
+            if (!fileName) {
+              this.echo("[[;red;]touch: missing operand");
+            } else {
+              if (fileName === steveJobsPic) {
+                window.open(
+                  "https://upload.wikimedia.org/wikipedia/commons/f/f5/Steve_Jobs_Headshot_2010-CROP2.jpg",
+                  "_blank"
+                );
+              } else if (fileName === billGatesPic) {
+                window.open(
+                  "https://upload.wikimedia.org/wikipedia/commons/2/2d/Bill_Gates_2014.jpg",
+                  "_blank"
+                );
+              } else {
+                this.echo(
+                  "[[;red;]open: " + fileName + ": No such file or directory"
+                );
+              }
+            }
+          } else {
+            this.echo(
+              "[[;red;]open: " + fileName + ": No such file or directory"
+            );
+          }
+        },
+        rm: function () {
+          var firstArg = arguments[0];
+          if (!firstArg) {
+            this.echo("[[;red;]touch: missing operand");
+          } else if (firstArg !== "-r") {
+            if (!rmCwd) {
+              if (firstArg === txtFile) {
+                txtFile = "";
+              } else {
+                this.echo(
+                  "[[;red;]rm: " + firstArg + ": No such file or directory"
+                );
+              }
+            } else if (rmCwd) {
+              if (rmCwd === "Pictures") {
+                for (var i = 0; i < arguments.length; i++) {
+                  if (arguments[i] === steveJobsPic) {
+                    steveJobsPic = "";
+                  } else if (arguments[i] === billGatesPic) {
+                    billGatesPic = "";
+                  } else {
+                    this.echo(
+                      "[[;red;]rm: " +
+                        arguments[i] +
+                        ": No such file or directory"
+                    );
+                  }
+                }
+              }
+            }
+          }
+          if (rmCwd) {
+            if (firstArg === "-r") {
+              for (var e = 1; e < arguments.length; e++) {
+                this.echo(
+                  "[[;red;]rm -r: " +
+                    arguments[e] +
+                    ": No such file or directory"
+                );
+              }
+            }
+          } else {
+            if (firstArg === "-r") {
+              var notFound = [];
+              for (var i = 1; i < arguments.length; i++) {
+                if (rmFolders.indexOf(arguments[i]) === -1) {
+                  notFound.push(arguments[i]);
+                }
+                for (var l = rmFolders.length - 1; l >= 0; l--) {
+                  if (arguments[i] === rmFolders[l]) {
+                    rmFolders.splice(l, 1);
+                  }
+                }
+              }
+              for (var f = 0; f < notFound.length; f++) {
+                this.echo(
+                  "[[;red;]rm -r: " +
+                    notFound[f] +
+                    ": No such file or directory"
+                );
+              }
+            }
+          }
+        },
+      },
+      {
+        prompt: "user@theprogrammingfoundation:~$ ",
+        enabled: false,
+        greetings: false,
+        checkArity: false,
+        keydown: function (e) {
+          var code;
+          if (e.keyCode) {
+            code = e.keyCode;
+          } else if (e.which) {
+            code = e.which;
+          }
+          if (code == 13) {
+            if (this.get_command().trim() === "") {
+              return false;
+            }
+          }
+          if (code == 32) {
+            e.preventDefault();
+            this.insert(" ");
+          }
+        },
+        onFocus: function () {
+          onFocusClearRm = true;
+          rmFolders = [
+            "Desktop",
+            "Documents",
+            "Downloads",
+            "Pictures",
+            "Music",
+            "Public",
+            "Videos",
+          ];
+          txtFile = "file.txt";
+          steveJobsPic = "SJ_1955.jpg";
+          billGatesPic = "BG_1955.jpg";
+          rmCwd = "";
+          this.exec("clear");
+          this.resume();
+        },
+        onBlur: function () {
+          onFocusClearRm = false;
+        },
+        onAfterCommand: function () {
+          if (onFocusClearRm) {
+            onFocusClearRm = false;
+            return;
+          }
+          scrollToTerminal($("#rm-terminal"));
+        },
+      }
+    );
+  });
+</script>

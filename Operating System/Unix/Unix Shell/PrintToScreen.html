@@ -1,0 +1,77 @@
+<div id="echo-terminal"></div>
+<script>
+  var onFocusClearEcho = false;
+  var echoTerminal = $("#echo-terminal").terminal(
+    {
+      echo: function () {
+        var result = [];
+        for (var i = 0; i < arguments.length; i++) {
+          result.push(arguments[i]);
+        }
+        this.echo(result.join(" "));
+        sharedContext.completedOne = true;
+        sharedContext.exportClearView = this.export_view();
+        setTimeout(function () {
+          sharedContext.completedOne = false;
+        }, 15000);
+      },
+    },
+    {
+      prompt: "user@theprogrammingfoundation:~$ ",
+      greetings: false,
+      checkArity: false,
+      enabled: true,
+      keydown: function (e) {
+        var code;
+        if (e.keyCode) {
+          code = e.keyCode;
+        } else if (e.which) {
+          code = e.which;
+        }
+        if (code == 13) {
+          if (this.get_command().trim() === "") {
+            return false;
+          }
+        }
+        if (code == 32) {
+          e.preventDefault();
+          if (!sharedContext.completedOne) {
+            this.insert(" ");
+          }
+        }
+        if (
+          (sharedContext.completedOne && this[0].id === "echo-terminal") ||
+          (sharedContext.completedTwo && this[0].id === "clear-terminal")
+        ) {
+          return false;
+        }
+        if (code == 13) {
+          if (
+            this.get_command().trim() === "clear" &&
+            this[0].id === "clear-terminal"
+          ) {
+            sharedContext.completedTwo = true;
+            setTimeout(function () {
+              sharedContext.completedTwo = false;
+            }, 15000);
+          }
+        }
+      },
+      onAfterCommand: function () {
+        if (onFocusClearEcho) {
+          onFocusClearEcho = false;
+          return;
+        }
+        scrollToTerminal($("#echo-terminal"));
+      },
+      onFocus: function () {
+        onFocusClearEcho = true;
+        this.exec("clear");
+        this.resume();
+      },
+      onBlur: function () {
+        onFocusClearEcho = false;
+      },
+    }
+  );
+</script>
