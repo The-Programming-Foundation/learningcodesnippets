@@ -1,0 +1,93 @@
+<div id="touch-terminal"></div>
+<script>
+  // touch
+  $(function () {
+    var onFocusClearTouch = true;
+    var touchFiles = [];
+    var touchLsFunc = function (f) {
+      if (!f && touchFiles.length) {
+        this.echo(touchFiles.join("  "));
+      } else if (touchFiles.length) {
+        if (touchFiles.indexOf(f) !== -1) {
+          this.echo(f);
+        } else {
+          this.echo(
+            '[[;red;]ls: cannot access "' + f + '": No such file or directory'
+          );
+        }
+      }
+    };
+    var touchTerminal = $("#touch-terminal").terminal(
+      {
+        ls: touchLsFunc,
+        l: touchLsFunc,
+        touch: function () {
+          if (!arguments.length) {
+            this.echo("[[;red;]touch: missing operand");
+          } else {
+            for (var i = 0; i < arguments.length; i++) {
+              if (touchFiles.indexOf(arguments[i]) !== -1) {
+                this.echo(
+                  "[[;red;]touch: cannot create file '" +
+                    arguments[i] +
+                    "': File exists"
+                );
+              } else if (
+                touchFiles.length < 2 &&
+                touchFiles.indexOf(arguments[i]) === -1
+              ) {
+                if (arguments[i][0] === ".") {
+                } else {
+                  if (arguments[i].toString().match(/[/><|:&+]/g)) {
+                    this.echo("[[;red;]touch: missing operand");
+                  } else {
+                    touchFiles.push(arguments[i]);
+                  }
+                }
+              }
+            }
+          }
+        },
+      },
+      {
+        prompt: "user@theprogrammingfoundation:~$ ",
+        enabled: false,
+        greetings: false,
+        checkArity: false,
+        onFocus: function () {
+          onFocusClearTouch = true;
+          touchFiles = [];
+          this.exec("clear");
+          this.resume();
+        },
+        onBlur: function () {
+          onFocusClearTouch = false;
+        },
+        onAfterCommand: function () {
+          if (onFocusClearTouch) {
+            onFocusClearTouch = false;
+            return;
+          }
+          scrollToTerminal($("#touch-terminal"));
+        },
+        keydown: function (e) {
+          var code;
+          if (e.keyCode) {
+            code = e.keyCode;
+          } else if (e.which) {
+            code = e.which;
+          }
+          if (code == 13) {
+            if (this.get_command().trim() === "") {
+              return false;
+            }
+          }
+          if (code == 32) {
+            e.preventDefault();
+            this.insert(" ");
+          }
+        },
+      }
+    );
+  });
+</script>
