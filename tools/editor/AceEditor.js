@@ -11,6 +11,7 @@ class AceEditor extends Editor{
         }else{
             this.lsId = lsId + 1;
         }
+        ace.config.set("basePath", "https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12");
         //ace editor object (value set after calling mount function)
         this._editor;    
     }
@@ -26,7 +27,9 @@ class AceEditor extends Editor{
         if(rect[0].width === 0 || rect[0].height === 0){
             throw Error('<div> element must have a fixed size');
         }
-        this._editor = ace.edit(this.div);
+        this._editor = ace.edit(this.div, {
+            mode: `ace/mode/${this.options.language || 'javascript'}`
+        });
     }
     
     //Should accept and apply custom styles when initializing and 
@@ -55,8 +58,9 @@ class AceEditor extends Editor{
     //Should implement the method getContent which would retrieve the content from the ace editor and return as a formatted string
     // (we need to agree upon this format, it's not decided yet)
     getContent(){
-        let savedContent = JSON.parse(localStorage.getItem(this.lsId));
-        this._editor.setValue(savedContent);        
+        const editorValue = this._editor.getValue();
+        localStorage.setItem(this.lsId, editorValue);
+        return editorValue;
     }
     //Should give an option to save the content, when the user clicks on save, execute the method persistContent 
     //which would have the logic to save the content in localStorage with the id with which the editor was instantiated
