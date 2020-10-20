@@ -7,16 +7,46 @@
     </head>
     <body>
         <button id="getContentBtn">Get Content Button</button>
+        <button id="persistContentBtn">Persist Content Button</button>
+        <button id="minimizeBtn">Minimize Button</button>
+        <button id="unminimizeBtn">Unminimize Button</button>
+        <button id="closeBtn">Close Button</button>
+        <div id="text"></div>
         <div id="editor" style="position: absolute; height: 100%; width: 100%;"></div>
         <script>
             document.addEventListener('DOMContentLoaded', () => {
-                const button = document.getElementById('getContentBtn');
+                const getBtn = document.getElementById('getContentBtn');
+                const perBtn = document.getElementById('persistContentBtn');
+                const minBtn = document.getElementById('minimizeBtn');
+                const unminBtn = document.getElementById('unminimizeBtn');
+                const closeBtn = document.getElementById('closeBtn');
+                
                 const editor = new AceEditor(document.getElementById('editor'));
                 editor.mount();
-                button.addEventListener('click', () => {
+                console.log("it seems to have mounted");
+
+                getBtn.addEventListener('click', () => {
                     console.log(editor.getContent());
                 });
-                console.log("it seems to have mounted");
+                perBtn.addEventListener('click', () => {
+                    editor.persistContent();
+                });
+
+                minBtn.addEventListener('click', () => {
+                    editor.minimize(onSwitch);                    
+                });
+                unminBtn.addEventListener('click', () => {
+                    editor.unminimize(onSwitch);
+                });
+                closeBtn.addEventListener('click', () => {
+                    editor.close(onSwitch);
+                });
+
+            
+                function onSwitch(status){
+                    let text = document.getElementById("text");
+                    text.innerHTML = `Status: ${status}`;
+                }
             });
         </script>
     </body>

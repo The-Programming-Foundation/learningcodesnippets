@@ -1,7 +1,7 @@
 class AceEditor extends Editor{
     //Should render an ace editor in the HTML Div Element and also accept a unique ID and store this ID in it's state. 
     //If ID isn't provided, generate a new one while initalizing.
-    constructor(div, options = {theme: "monokai"}, lsId = 0){ 
+    constructor(div, options = {language: 'javascript'}, lsId = 0){ 
         super();
         this.div = div;
         this.options = options;
@@ -27,8 +27,10 @@ class AceEditor extends Editor{
         if(rect[0].width === 0 || rect[0].height === 0){
             throw Error('<div> element must have a fixed size');
         }
+        //the editor is defaulted with a language mode set
+        //no error checking for this.options.language 
         this._editor = ace.edit(this.div, {
-            mode: `ace/mode/${this.options.language || 'javascript'}`
+            mode: `ace/mode/${this.options.language}`
         });
     }
     
@@ -36,16 +38,17 @@ class AceEditor extends Editor{
     //call the method style which should have the logic for applying the styles to the editor's container as well as to the editor itself based on the received input and the options available in ace
     style(){
         //get all possible options in ace editor
-        const optionName = Object.keys(this._editor.getOptions());
+        let optionName = Object.keys(this._editor.getOptions());
+        //add 'language' as a valid key so user's can set options like this {language: 'javascript'}
+        //and not be thrown with an error
+        optionName.push('language');
+
         //check if passed options have valid option names
         //NOTE: have yet to check for valid option values
         const sessionOption = Object.keys(this.options);
         sessionOption.forEach( k => {
             if(!(optionName.includes(k))){
                 throw Error(`${k} is not a valid option name`);
-            }
-            if(k === 'mode'){
-                this.options.mode = `ace/mode/${this.options.mode}`;
             }
             if(k === 'theme'){
                 this.options.theme = `ace/theme/${this.options.theme}`;
@@ -59,20 +62,29 @@ class AceEditor extends Editor{
     // (we need to agree upon this format, it's not decided yet)
     getContent(){
         const editorValue = this._editor.getValue();
-        localStorage.setItem(this.lsId, editorValue);
+        //JSON.stringify can get the whole content if it has expanded multiple lines 
+        localStorage.setItem(this.lsId, JSON.stringify(editorValue));
         return editorValue;
     }
     //Should give an option to save the content, when the user clicks on save, execute the method persistContent 
     //which would have the logic to save the content in localStorage with the id with which the editor was instantiated
     persistContent(){
         localStorage.setItem(this.lsId, JSON.stringify(this._editor.getValue()));
+        console.log(`saved content: local storage id ${this.lsId} and content ${localStorage.getItem(this.lsId)}`);
     }
     //Should implement the method minimize which would make the container div element of the editor invisible 
     //(display:none) and call the onSwitch method with value as 'minimize'
     minimize(callback){
-        this.div.style.display = "none";
+        this.div.style.display = 'none';
         callback('minimize');
     }
+
+    //added a unminimize function to help with testing
+    unminimize(callback){
+        this.div.style.display = 'block';
+        callback('open');
+    }
+
     //Should implement the method close which would remove the values stored in localStorage and destroy the instance of the editor and 
     //call the onSwitch method with the value as 'close'
     //NOTE: only done initial testing; not sure if this is implemented right 
@@ -85,7 +97,7 @@ class AceEditor extends Editor{
 
 //Example of Implementation:
 //let code = document.getElementById("code");
-//oneEditor = new AceEditor(code, {mode: "javascript", theme: "monokai"});
+//oneEditor = new AceEditor(code, {language: 'javascript'});
 //oneEditor.mount();
 //oneEditor.style();
 
@@ -103,14 +115,4 @@ class AceEditor extends Editor{
 //let getButton = document.getElementById("get");
 //if(getButton){
 //    getButton.onclick = oneEditor.getContent.bind(oneEditor);
-//}
-
-//let minimizeButton = document.getElementById("minimize");
-//if(minimizeButton){
-//    minimizeButton.onclick = function(){threeEditor.minimize(onSwitch);}
-//}
-
-//let closeButton = document.getElementById("close");
-//if(closeButton){
-//    closeB.onclick = function(){threeEditor.close(onSwitch)};
 //}
