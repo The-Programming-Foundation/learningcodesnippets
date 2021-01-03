@@ -1,4 +1,4 @@
-This repository consists of all the code snippets for the `Learn` page of The Programming Foundation.
+This repository consists of all the "soon to be deprecated" code snippets for the `Learn` page of The Programming Foundation.
 
 # Structure of the repository
 This repo follows a hierarchical directory structure that resembles the hierarchy present in the website's `Learn` page.
