@@ -1,1 +1,95 @@
-This is yet to be completed
+<div id="ls-terminal"></div>
+<script>
+// ls cd
+$(function() {
+  var onFocusClearLS = true;
+  var lsFolders = ['Desktop', 'Documents', 'Downloads', 'Pictures', 'Music', 'Public', 'Videos'];
+  var lsCwd = '';
+  var lsFunc = function (f) {
+    if (!lsCwd) {
+      if (f === '-l') {
+        this.echo('total 1788');
+        this.echo('drwxr-xr-x. 2 username username      4096 Dec 28 23:44 Desktop');
+        this.echo('drwxr-xr-x. 3 username username      4096 Jan  5 20:58 Documents');
+        this.echo('drwx--x---. 5 username crouton       4096 Mar  5 21:21 Downloads');
+        this.echo('drwxr-xr-x. 2 username username      4096 Dec 28 23:44 Music');
+        this.echo('drwxr-xr-x. 2 username username      4096 Mar  5 21:21 Pictures');
+        this.echo('drwxr-xr-x. 2 username username      4096 Dec 28 23:44 Public');
+        this.echo('drwxr-xr-x. 2 root  root             4096 Dec 29 12:40 src');
+        this.echo('drwxr-xr-x. 2 username username      4096 Dec 28 23:44 Videos');
+      } else if (!f) {
+        this.echo(lsFolders.join('  '));
+      } else if (lsFolders.indexOf(f.substring(0, f.length - 1)) !== -1 || lsFolders.indexOf(f) !== -1) {
+        if (f.split('/')[0] === 'Pictures') {
+          this.echo('SJ_1955.jpg  BG_1955.jpg');
+        }
+      } else if (lsFolders.indexOf(f.substring(0, f.length - 1)) === -1) {
+        this.echo('[[;red;]ls: cannot access "' + f.split('/')[0] + '": No such file or directory');
+      }
+    } else {
+      if (!f && lsCwd === 'Pictures') { this.echo('SJ_1955.jpg  BG_1955.jpg'); }
+    }
+  }
+  var lsTerminal = $('#ls-terminal').terminal({
+    ls: lsFunc, l: lsFunc,
+    cd: function (path) {
+      if (!path || path === '..' || path === '../') {
+        if (lsCwd) {
+          lsCwd = '';
+          this.set_prompt('user@theprogrammingfoundation:~$ ');
+        }
+      } else if (lsFolders.indexOf(path) !== -1 || lsFolders.indexOf(path.substring(0, path.length - 1)) !== -1) {
+        lsCwd = path.split('/')[0];
+        this.set_prompt('user@theprogrammingfoundation:~/' + path.split('/')[0] + '$ ');
+      } else {
+        this.echo('[[;red;]cd: ' + path + ': No such file or directory');
+      }
+    },
+    open: function (fileName) {
+      if (lsCwd === 'Pictures') {
+        if (fileName === 'SJ_1955.jpg') {
+          window.open('https://upload.wikimedia.org/wikipedia/commons/f/f5/Steve_Jobs_Headshot_2010-CROP2.jpg', '_blank');
+        } else if (fileName === 'BG_1955.jpg') {
+          window.open('https://upload.wikimedia.org/wikipedia/commons/2/2d/Bill_Gates_2014.jpg', '_blank');
+        } else {
+          this.echo('[[;red;]open: ' + fileName + ': No such file or directory');
+        }
+      } else {
+        this.echo('[[;red;]open: ' + fileName + ': No such file or directory');
+      }
+    }
+  },{
+    prompt: 'user@theprogrammingfoundation:~$ ',
+    enabled: false,
+    greetings: false,
+    checkArity: false,
+    keydown: function (e) {
+      var code;  
+      if (e.keyCode) { code = e.keyCode; }
+      else if (e.which) { code = e.which; }
+      if (code == 13) {
+        if (this.get_command().trim() === '') { return false; }
+      }
+      if (code == 32) {
+        e.preventDefault();
+        this.insert(' ');
+      }
+    },
+    onAfterCommand: function () {
+      if (onFocusClearLS) {
+        onFocusClearLS = false;
+        return;
+      }
+      scrollToTerminal($('#ls-terminal'));
+    },
+    onFocus: function () {
+      onFocusClearLS = true;
+      lsCwd = '';
+      this.set_prompt('user@theprogrammingfoundation:~$ ');
+      this.exec('clear');
+      this.resume();
+    },
+    onBlur: function () { onFocusClearLS = false; }
+  });
+});
+</script>

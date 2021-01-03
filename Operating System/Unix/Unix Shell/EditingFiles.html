@@ -1,1 +1,345 @@
-This is yet to be completed
+<!-- Copyright 2020 <Dan Volosnikov>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.-->
+<!--The following code is contributed by Dan Volosnikov-->
+<div id="vim"></div>
+<style>
+#vim-container { display: none; }
+#vim-content-table {
+  font-family: "-apple-system", "BlinkMacSystemFont", "Segoe UI",Roboto,"Helvetica Neue", sans-serif;
+  background-color: #002a36;
+  border-collapse: collapse;
+  color: #a5a6a6;
+  width: 100%;
+}
+#vim-content-table tbody tr td:first-child {
+  background-color: #313233;
+  color: #656666;
+  font-size: 14px;
+  padding-left: 20px;
+  padding-right: 5px;
+  width: 15px;
+}
+#vim-content-table tbody tr td:first-child p {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+#vim-content-table tbody tr td:last-child {
+  padding-left: 5px;
+}
+#vim-content-table tbody tr td:last-child p {
+  margin: 5px 0 5px 0;
+  display: inline-block;
+  vertical-align: top;
+}
+#vim-footer-table {
+  font-family: "-apple-system", "BlinkMacSystemFont", "Segoe UI",Roboto,"Helvetica Neue", sans-serif;
+  background-color: #222324;
+  border-collapse: collapse;
+  color: #a5a6a6;
+  width: 100%;
+}
+#vim-footer-table #vim-cursor {
+  height: 18px;
+}
+#vim-footer-table tbody tr td p {
+  margin: 3px 0 3px 0;
+  display: inline-block;
+  vertical-align: top;
+}
+#vim-footer-nav {
+  float: right;
+  margin-right: 20px;
+}
+#vim-cursor { 
+  display: inline-block;
+  background-color: #f8f8f0;
+  color: #58595a;
+  width: 10px;
+  height: 20px;
+  margin-top: 4px;
+  -webkit-animation: blink 1s step-end infinite;
+  animation: blink 1s step-end infinite;
+}
+@-webkit-keyframes blink {
+  0% { opacity: 1.0; }
+  50% { opacity: 0.0; }
+  100% { opacity: 1.0; }
+}
+@keyframes blink {
+  0% { opacity: 1.0; }
+  50% { opacity: 0.0; }
+  100% { opacity: 1.0; }
+}
+</style>
+<div id="vim-terminal"></div>
+<script>
+// vim
+var isVimOpened = false;
+var isMobileVimOpened = false;
+var isMobileSubmit = false;
+var vimTxtFile = { name: '', content: [] };  
+var vimTerminal = $('#vim-terminal').terminal({
+    ls: function () {
+      this.echo(vimTxtFile.name);
+    },
+    cat: function(fileName) {
+      if (!fileName) { this.echo('missing file argument'); }
+      else {
+        if (fileName !== vimTxtFile.name) {
+          this.echo('no such file');
+        } else {
+          this.set_prompt('~');
+          for (var p = 0; p < vimTxtFile.content.length; p++) {
+            this.echo(vimTxtFile.content[p]);
+          }
+          this.set_prompt('user@theprogrammingfoundation:~$ ');
+        }
+      }
+    },
+    vim: function (fileName) {
+      if (!fileName) { this.echo('missing file argument'); }
+      else {
+        if (isMobile) {
+          isMobileVimOpened = true;
+          vimTxtFile.name = fileName;
+          this.set_prompt('~~>');
+        } else {
+          this.clear();
+          isVimOpened = true;
+          vimTxtFile = { name: fileName, content: [] };  
+          var vimContainer = $('#vim-container');
+          vimContainer.html('<table id="vim-content-table"><tbody><tr data-col="1"><td><p>1</p></td><td><span id="vim-cursor"></span></td></tr><tr data-col="2"><td><p>2</p></td><td></td></tr><tr data-col="3"><td><p>3</p></td><td></td></tr><tr data-col="4"><td><p>4</p></td><td></td></tr><tr data-col="5"><td><p>5</p></td><td></td></tr></tbody></table><table id="vim-footer-table"><tbody><tr><td id="vim-footer-input">-- INSERT --</td><td><span id="vim-footer-nav">1,1</span></td></tr></tbody></table>');
+          this.disable(false);
+          vimContainer.slideDown();
+        }
+      }
+    }
+  },{
+    prompt: 'user@theprogrammingfoundation:~$ ',
+    enabled: false,
+    greetings: false,
+    checkArity: false,
+    onBeforeCommand: function (cmd) {
+      if (isMobileVimOpened || isMobileSubmit) {
+        if (isMobileSubmit) { isMobileSubmit = false; }
+        return false;
+      }
+    },
+    onAfterCommand: function () {
+      scrollToTerminal($('#vim-terminal'));
+    },
+    onFocus: function () {
+      this.exec('clear');
+      this.resume();
+    },
+    keydown: function (e) {
+      var code;  
+      if (e.keyCode) { code = e.keyCode; }
+      else if (e.which) { code = e.which; }
+      if (code == 13) {
+        if (isMobileVimOpened) {
+          var fileContent = this.get_command();
+          this.echo('Success! File was saved');
+          this.set_prompt('user@theprogrammingfoundation:~$ ');
+          vimTxtFile.content = [fileContent];
+          isMobileVimOpened = false;
+          isMobileSubmit = true;
+        }
+        if (this.get_command().trim() === '') { return false; }
+      }
+      if (code == 32) {
+        e.preventDefault();
+        this.insert(' ');
+      }
+    }
+  });
+</script>
+<div id="vim-container"></div>
+<script>
+$(function() {
+var cursorPos = { x: 1, y: 1 };
+var isFocusOnFooter = false;
+function updateFooterNav () {
+  $('#vim-footer-nav').html(cursorPos.x + ',' + cursorPos.y);
+}
+function moveCursorLeft () {
+  if (cursorPos.x - 1 === 0) { return; }
+  cursorPos.x -= 1;
+  var currentRow = $("[data-col="+ cursorPos.y +"] td").eq(1);
+  var currentRowContent = currentRow.html().replace('<span id="vim-cursor"></span>', '').split('</p>');
+  currentRowContent.pop();
+  var withoutCursor = currentRowContent.map(function (el) { return el + '</p>' });
+  withoutCursor.splice(cursorPos.x - 1, 0, '<span id="vim-cursor"></span>');
+  currentRow.html(withoutCursor.join(''));
+  updateFooterNav()
+}
+function moveCursorRight () {
+  var currentRow = $("[data-col="+ cursorPos.y +"] td").eq(1);
+  var currentRowContent = currentRow.html().replace('<span id="vim-cursor"></span>', '').split('</p>');
+  currentRowContent.pop();
+  if (currentRowContent.length >= cursorPos.x) {
+    cursorPos.x += 1;
+    var withoutCursor = currentRowContent.map(function (el) {
+      return el + '</p>'
+    });
+    withoutCursor.splice(cursorPos.x - 1, 0, '<span id="vim-cursor"></span>');
+    currentRow.html(withoutCursor.join(''));
+    updateFooterNav()
+  }
+}
+function moveCursorDown () {
+  var totalRows = $('#vim-content-table tr').length;
+  if (totalRows >= cursorPos.y + 1) {
+    var previousRow = $("[data-col="+ cursorPos.y +"] td").eq(1);
+    var previousRowContent = previousRow.html().replace('<span id="vim-cursor"></span>', '').split('</p>');
+    previousRowContent.pop();
+    previousRow.html(previousRowContent.join('</p>'));
+    cursorPos.y += 1;
+    var currentRow = $("[data-col="+ cursorPos.y +"] td").eq(1);
+    var currentRowContent = currentRow.html().split('</p>');
+    currentRowContent.pop();
+    var withoutCursor = currentRowContent.map(function (el) {
+      return el + '</p>'
+    });
+    withoutCursor.splice(cursorPos.x - 1, 0, '<span id="vim-cursor"></span>');
+    currentRow.html(withoutCursor.join(''));
+    updateFooterNav();
+  }
+}
+function moveCursorUp () {
+  if (cursorPos.y - 1 >= 1) {
+    var previousRow = $("[data-col="+ cursorPos.y +"] td").eq(1);
+    var previousRowContent = previousRow.html().replace('<span id="vim-cursor"></span>', '').split('</p>');
+    previousRowContent.pop();
+    previousRow.html(previousRowContent.join('</p>'));
+    cursorPos.y -= 1;
+    var currentRow = $("[data-col="+ cursorPos.y +"] td").eq(1);
+    var currentRowContent = currentRow.html().split('</p>');
+    currentRowContent.pop();
+    var withoutCursor = currentRowContent.map(function (el) {
+      return el + '</p>'
+    });
+    withoutCursor.splice(cursorPos.x - 1, 0, '<span id="vim-cursor"></span>');
+    currentRow.html(withoutCursor.join(''));
+    updateFooterNav()
+  }
+}
+function removeFromLeft () {
+  if (cursorPos.x - 1 === 0) { /*remove the row*/ }
+  else {
+    cursorPos.x -= 1;
+    var currentRow = $("[data-col="+ cursorPos.y +"] td").eq(1);
+    var currentRowContent = currentRow.html().replace('<span id="vim-cursor"></span>', '').split('</p>');
+    currentRowContent.pop();
+    currentRowContent.splice(cursorPos.x - 1, 1);
+    var withoutCursor = currentRowContent.map(function (el) {
+      return el + '</p>'
+    });
+    withoutCursor.splice(cursorPos.x - 1, 0, '<span id="vim-cursor"></span>');
+    currentRow.html(withoutCursor.join(''));
+    updateFooterNav();
+  }
+}
+function removeFromRight () {
+    var currentRow = $("[data-col="+ cursorPos.y +"] td").eq(1);
+    var currentRowContent = currentRow.html().replace('<span id="vim-cursor"></span>', '').split('</p>');
+    currentRowContent.pop();
+    currentRowContent.splice(cursorPos.x - 1, 1);
+    var withoutCursor = currentRowContent.map(function (el) {
+      return el + '</p>'
+    });
+    withoutCursor.splice(cursorPos.x - 1, 0, '<span id="vim-cursor"></span>');
+    currentRow.html(withoutCursor.join(''));
+}
+function handleInsertCharContent (char, e) {
+  if (char === ' ') {
+    e.preventDefault();
+    char = '&nbsp;';
+  }
+  var currentRow = $("[data-col="+ cursorPos.y +"] td").eq(1);
+  var currentRowContent = currentRow.html().replace('<span id="vim-cursor"></span>', '').split('</p>');
+  currentRowContent.pop();
+  currentRowContent.splice(cursorPos.x - 1, 0, '<p>' + char);
+  var withoutCursor = currentRowContent.map(function (el) {
+    return el + '</p>'
+  });
+  withoutCursor.splice(cursorPos.x, 0, '<span id="vim-cursor"></span>');
+  currentRow.html(withoutCursor.join(''));
+  cursorPos.x += 1;
+  updateFooterNav();
+}
+function handleInsertCharFooter (char) {
+  var footerInput = $('#vim-footer-input');
+  // for now only force :wq
+  if (footerInput.html() === '<span id="vim-cursor"></span>' && char === ':') {
+    footerInput.html('<p>:</p><span id="vim-cursor"></span>');
+  } else if (footerInput.html() === '<p>:</p><span id="vim-cursor"></span>' && char === 'w') {
+    footerInput.html('<p>:</p><p>w</p><span id="vim-cursor"></span>');
+  } else if (footerInput.html() === '<p>:</p><p>w</p><span id="vim-cursor"></span>' && char === 'q') {
+    footerInput.html('<p>:</p><p>w</p><p>q</p><span id="vim-cursor"></span>');
+  }
+}
+function saveFile () {
+  var footerInput = $('#vim-footer-input');
+  if (footerInput.html() === '<p>:</p><p>w</p><p>q</p><span id="vim-cursor"></span>') {
+    // handle save
+    $("#vim-container").slideUp();
+    cursorPos = { x: 1, y: 1 };
+    updateFooterNav();
+    isFocusOnFooter = false;
+    isVimOpened = false;
+    var rows = $('#vim-content-table tbody')[0].children;
+    var resultArr = [];
+    for (var r = 0; r < rows.length; r++) {
+      var resultStr = '';
+      var row = rows[r].children[1].children;
+      for (var c = 0; c < row.length; c++) {
+        if (row[c].innerText === '&nbsp;') { resultStr += ' '; }
+        else { resultStr += row[c].innerText; }
+      }
+      resultArr.push(resultStr);
+    }
+    vimTxtFile.content = resultArr;
+    vimTerminal.enable(false);
+  }
+}
+function switchToFooter () {
+  isFocusOnFooter = true;
+  var previousRow = $("[data-col="+ cursorPos.y +"] td").eq(1);
+  var previousRowContent = previousRow.html().replace('<span id="vim-cursor"></span>', '').split('</p>');
+  previousRowContent.pop();
+  previousRow.html(previousRowContent.join('</p>'));
+  $('#vim-footer-input').html('<span id="vim-cursor"></span>');
+}
+
+$(document).keypress(function (e) {
+  if (isVimOpened) {
+  	var decodedChar = String.fromCharCode(e.which);
+    if (decodedChar && !isFocusOnFooter) { handleInsertCharContent(decodedChar, e); }
+    if (decodedChar && isFocusOnFooter) { handleInsertCharFooter(decodedChar); }
+  }
+});
+
+$(document).keydown(function (e) {
+  if (isVimOpened) {
+    if (!isFocusOnFooter) {
+      if (e.keyCode === 37) { moveCursorLeft(); }
+      if (e.keyCode === 39) { moveCursorRight(); }
+      if (e.keyCode === 38) { moveCursorUp(); }
+      if (e.keyCode === 40) { moveCursorDown(); }
+      if (e.keyCode === 8) { removeFromLeft(); }
+      if (e.keyCode === 46) { removeFromRight(); }
+      if (e.keyCode === 27) { switchToFooter(); }
+    } else {
+      if (e.keyCode === 13) { saveFile(); }
+    }
+  }
+});
+
+});
+</script>
